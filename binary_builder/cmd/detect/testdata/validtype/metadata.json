@@ -1,0 +1,8 @@
+{
+  "type": "binary",
+  "label": "fabcar",
+  "chaincodeData": {
+    "binary": "chaincode",
+    "platform": "linux/amd64"
+  }
+}

@@ -160,7 +160,7 @@ integration-test: integration-test-prereqs ## Runs the integration tests
 	./scripts/run-integration-tests.sh $(INTEGRATION_TEST_SUITE)
 
 .PHONY: integration-test-prereqs
-integration-test-prereqs: gotool.ginkgo baseos-docker ccenv-docker docker-thirdparty ccaasbuilder ## Setup prerequisites for integration tests
+integration-test-prereqs: gotool.ginkgo baseos-docker ccenv-docker docker-thirdparty ccaasbuilder binarybuilder ## Setup prerequisites for integration tests
 
 .PHONY: unit-test
 unit-test: unit-test-clean docker-thirdparty-couchdb ## Runs the go-test based unit tests
@@ -240,7 +240,7 @@ $(BUILD_DIR)/bin/%:
 	@touch $@
 
 .PHONY: docker
-docker: $(RELEASE_IMAGES:%=%-docker) ccaasbuilder ## Builds all docker images
+docker: $(RELEASE_IMAGES:%=%-docker) ccaasbuilder binarybuilder ## Builds all docker images
 
 .PHONY: $(RELEASE_IMAGES:%=%-docker)
 $(RELEASE_IMAGES:%=%-docker): %-docker: $(BUILD_DIR)/images/%/$(DUMMY) ## Builds a docker image
@@ -277,6 +277,7 @@ release-all: check-go-version $(RELEASE_PLATFORMS:%=release/%) ## Builds release
 $(RELEASE_PLATFORMS:%=release/%): GO_LDFLAGS = $(METADATA_VAR:%=-X $(PKGNAME)/common/metadata.%)
 $(RELEASE_PLATFORMS:%=release/%): release/%: $(foreach exe,$(RELEASE_EXES),release/%/bin/$(exe))
 $(RELEASE_PLATFORMS:%=release/%): release/%: ccaasbuilder/%
+$(RELEASE_PLATFORMS:%=release/%): release/%: binarybuilder/%
 
 # explicit targets for all platform executables
 $(foreach platform, $(RELEASE_PLATFORMS), $(RELEASE_EXES:%=release/$(platform)/bin/%)):
@@ -292,7 +293,7 @@ dist: dist-clean dist/$(MARCH) # Builds release packages for the host platform
 
 .PHONY: dist-all
 dist-all: dist-clean $(RELEASE_PLATFORMS:%=dist/%) ## Builds release packages for all target platforms
-dist/%: release/% ccaasbuilder
+dist/%: release/% ccaasbuilder binarybuilder
 	mkdir -p release/$(@F)/config
 	cp -r sampleconfig/*.yaml release/$(@F)/config
 	cd release/$(@F) && tar -czvf hyperledger-fabric-$(@F).$(PROJECT_VERSION).tar.gz *
@@ -373,6 +374,23 @@ ccaasbuilder/%: ccaasbuilder-clean
 	cd ccaas_builder && go test -v ./cmd/release && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/ccaas/bin/ ./cmd/release/
 
 ccaasbuilder: ccaasbuilder/$(MARCH)
+
+.PHONY: binarybuilder-clean
+binarybuilder-clean/%:
+	$(eval platform = $(patsubst binarybuilder/%,%,$@) )
+	cd binary_builder && rm -rf $(strip $(platform))
+
+.PHONY: binarybuilder
+binarybuilder/%: binarybuilder-clean
+	$(eval platform = $(patsubst binarybuilder/%,%,$@) )
+	$(eval GOOS = $(word 1,$(subst -, ,$(platform))))
+	$(eval GOARCH = $(word 2,$(subst -, ,$(platform))))
+	@mkdir -p release/$(strip $(platform))/builders/binary/bin
+	cd binary_builder && go test -v ./cmd/detect && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/binary/bin/ ./cmd/detect/
+	cd binary_builder && go test -v ./cmd/build && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/binary/bin/ ./cmd/build/
+	cd binary_builder && go test -v ./cmd/run && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/binary/bin/ ./cmd/run/
+
+binarybuilder: binarybuilder/$(MARCH)
 
 .PHONY: scan
 scan: scan-osv-scanner ## Run all vulnerability scans
