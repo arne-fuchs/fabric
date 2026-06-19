@@ -13,6 +13,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/platforms/golang"
 	"github.com/hyperledger/fabric/core/chaincode/platforms/java"
 	"github.com/hyperledger/fabric/core/chaincode/platforms/node"
+	"github.com/hyperledger/fabric/core/chaincode/platforms/rust"
 )
 
 // SupportedPlatforms is the canonical list of platforms Fabric supports
@@ -20,6 +21,7 @@ var SupportedPlatforms = []Platform{
 	&java.Platform{},
 	&golang.Platform{},
 	&node.Platform{},
+	&rust.Platform{},
 }
 
 // Interface for validating the specification and writing the package for

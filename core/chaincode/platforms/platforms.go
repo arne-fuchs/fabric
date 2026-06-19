@@ -20,6 +20,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/platforms/golang"
 	"github.com/hyperledger/fabric/core/chaincode/platforms/java"
 	"github.com/hyperledger/fabric/core/chaincode/platforms/node"
+	"github.com/hyperledger/fabric/core/chaincode/platforms/rust"
 	"github.com/hyperledger/fabric/core/chaincode/platforms/util"
 	dcli "github.com/moby/moby/client"
 	"github.com/pkg/errors"
@@ -30,6 +31,7 @@ var SupportedPlatforms = []Platform{
 	&java.Platform{},
 	&golang.Platform{},
 	&node.Platform{},
+	&rust.Platform{},
 }
 
 // Interface for validating the specification and writing the package for

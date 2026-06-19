@@ -24,6 +24,7 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/hyperledger/fabric/common/util"
 	"github.com/hyperledger/fabric/core/chaincode/persistence"
+	"github.com/hyperledger/fabric/core/chaincode/platforms/rust"
 	"github.com/hyperledger/fabric/core/container"
 	"github.com/hyperledger/fabric/core/container/ccintf"
 	dcontainer "github.com/moby/moby/api/types/container"
@@ -189,7 +190,9 @@ func (vm *DockerVM) GetArgs(ccType string, peerAddress string) ([]string, error)
 	// language specific arguments, possibly should be pushed back into platforms, but were simply
 	// ported from the container_runtime chaincode component
 	switch ccType {
-	case pb.ChaincodeSpec_GOLANG.String(), pb.ChaincodeSpec_CAR.String():
+	// Rust (which has no ChaincodeSpec_Type enum; see rust.Type) compiles to a
+	// native binary staged as "chaincode", launched exactly like golang.
+	case pb.ChaincodeSpec_GOLANG.String(), pb.ChaincodeSpec_CAR.String(), rust.Type:
 		return []string{"chaincode", fmt.Sprintf("-peer.address=%s", peerAddress)}, nil
 	case pb.ChaincodeSpec_JAVA.String():
 		return []string{"/root/chaincode-java/start", "--peerAddress", peerAddress}, nil
