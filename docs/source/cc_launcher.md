@@ -209,7 +209,7 @@ A chaincode package contains chaincode and associated metadata in a compressed g
 A lifecycle chaincode package contains two files. The first file, `code.tar.gz` is a gzip compressed POSIX tape archive. This file includes the source artifacts for the chaincode. Packages created by the peer CLI will place the chaincode implementation source under the `src` directory and chaincode metadata (like CouchDB indexes) under the `META-INF` directory.
 
 The second file, `metadata.json` is a JSON document with three keys:
-- `type`: the chaincode type (e.g. GOLANG, JAVA, NODE)
+- `type`: the chaincode type (e.g. GOLANG, JAVA, NODE, RUST)
 - `path`: for go chaincode, the GOPATH or GOMOD relative path to the main chaincode package; undefined for other types
 - `label`: the chaincode label that is used to generate the package-id by which the package is identified within the new chaincode lifecycle process.
 

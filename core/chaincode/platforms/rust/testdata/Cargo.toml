@@ -1,0 +1,13 @@
+[package]
+name = "chaincode"
+authors = ["Arne Fuchs <arnefuchs@pm.me>"]
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+fabric-sdk = { version="0.5.6", features = ["chaincode"] }
+serde = "1.0.228"
+
+[[bin]]
+name = "chaincode"
+path = "src/main.rs"

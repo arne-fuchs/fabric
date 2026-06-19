@@ -3,7 +3,7 @@
 ## What is Chaincode?
 
 Chaincode is a program, written in [Go](https://golang.org), [Node.js](https://nodejs.org),
-or [Java](https://java.com/en/) that implements a prescribed interface.
+[Java](https://java.com/en/), or [Rust](https://www.rust-lang.org) that implements a prescribed interface.
 Chaincode runs in a secured Docker container isolated from the endorsing peer
 process. Chaincode initializes and manages ledger state through transactions
 submitted by applications.

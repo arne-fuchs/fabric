@@ -11,6 +11,14 @@
 [![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/hyperledger/fabric)](https://github.com/hyperledger/fabric/blob/main/go.mod)
 [![GitHub Release](https://img.shields.io/github/v/release/hyperledger/fabric)](https://github.com/hyperledger/fabric/releases)
 
+> **TODO — native Rust chaincode (before merge):** the Rust platform currently
+> uses the literal type string `rust.Type = "RUST"` because the
+> `ChaincodeSpec_Type` protobuf enum has no `RUST` member. This must be fixed
+> upstream: add `RUST = 5` to `ChaincodeSpec.Type` in
+> [fabric-protos](https://github.com/hyperledger/fabric-protos) `peer/chaincode.proto`,
+> release a new `fabric-protos-go-apiv2`, bump the dependency here, and replace
+> `rust.Type` with `pb.ChaincodeSpec_RUST.String()`.
+
 ## Overview
 
 **Hyperledger Fabric** is a **Graduated** project under the Hyperledger umbrella, designed for distributed ledger solutions. Its modular architecture provides high levels of confidentiality, resiliency, flexibility, and scalability. Hyperledger Fabric allows for pluggable implementations of various components, accommodating the complexities of different economic ecosystems.

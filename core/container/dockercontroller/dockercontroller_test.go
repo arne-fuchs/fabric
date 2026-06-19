@@ -85,19 +85,20 @@ fi
 func TestGetArgs(t *testing.T) {
 	tests := []struct {
 		name         string
-		ccType       pb.ChaincodeSpec_Type
+		ccType       string
 		expectedArgs []string
 		expectedErr  string
 	}{
-		{"golang-chaincode", pb.ChaincodeSpec_GOLANG, []string{"chaincode", "-peer.address=peer-address"}, ""},
-		{"java-chaincode", pb.ChaincodeSpec_JAVA, []string{"/root/chaincode-java/start", "--peerAddress", "peer-address"}, ""},
-		{"node-chaincode", pb.ChaincodeSpec_NODE, []string{"/bin/sh", "-c", expectedNodeStartScript}, ""},
-		{"unknown-chaincode", pb.ChaincodeSpec_Type(999), []string{}, "unknown chaincodeType: 999"},
+		{"golang-chaincode", pb.ChaincodeSpec_GOLANG.String(), []string{"chaincode", "-peer.address=peer-address"}, ""},
+		{"java-chaincode", pb.ChaincodeSpec_JAVA.String(), []string{"/root/chaincode-java/start", "--peerAddress", "peer-address"}, ""},
+		{"node-chaincode", pb.ChaincodeSpec_NODE.String(), []string{"/bin/sh", "-c", expectedNodeStartScript}, ""},
+		{"rust-chaincode", "RUST", []string{"chaincode", "-peer.address=peer-address"}, ""},
+		{"unknown-chaincode", pb.ChaincodeSpec_Type(999).String(), []string{}, "unknown chaincodeType: 999"},
 	}
 	for _, tc := range tests {
 		vm := &DockerVM{}
 
-		args, err := vm.GetArgs(tc.ccType.String(), "peer-address")
+		args, err := vm.GetArgs(tc.ccType, "peer-address")
 		if tc.expectedErr != "" {
 			require.EqualError(t, err, tc.expectedErr)
 			continue

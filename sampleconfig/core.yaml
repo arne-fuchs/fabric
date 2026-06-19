@@ -601,6 +601,23 @@ chaincode:
     # This is an image based on node:$(NODE_VER)-alpine
     runtime: $(DOCKER_NS)/fabric-nodeenv:2.5
 
+  rust:
+    # Rust chaincode compiles to a native binary, so (like golang) the compiled
+    # binary is copied into the slim fabric-baseos runtime image.
+    # TWO_DIGIT_VERSION represents Fabric major.minor version.
+    runtime: $(DOCKER_NS)/fabric-baseos:$(TWO_DIGIT_VERSION)
+
+    # Image providing the Rust/cargo toolchain used to compile the chaincode.
+    # There is no Fabric-published Rust build image yet, so this defaults to the
+    # upstream rust image and can be overridden.
+    #
+    # Pin a concrete Rust patch version (not a floating tag like rust:1-bookworm)
+    # so the toolchain is identical across builds. Combined with a committed
+    # Cargo.lock and the `cargo build --locked` used by the builder, this makes
+    # the compiled chaincode deterministic. For byte-identical reproducibility,
+    # additionally pin the image digest, e.g. rust:1.98.0-bookworm@sha256:<...>.
+    builder: rust:1.98.0-bookworm
+
   # List of directories to treat as external builders and launchers for
   # chaincode. The external builder detection processing will iterate over the
   # builders in the order specified below.
