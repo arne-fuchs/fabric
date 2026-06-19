@@ -388,6 +388,7 @@ binarybuilder/%: binarybuilder-clean
 	@mkdir -p release/$(strip $(platform))/builders/binary/bin
 	cd binary_builder && go test -v ./cmd/detect && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/binary/bin/ ./cmd/detect/
 	cd binary_builder && go test -v ./cmd/build && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/binary/bin/ ./cmd/build/
+	cd binary_builder && go test -v ./cmd/release && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/binary/bin/ ./cmd/release/
 	cd binary_builder && go test -v ./cmd/run && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/binary/bin/ ./cmd/run/
 
 binarybuilder: binarybuilder/$(MARCH)

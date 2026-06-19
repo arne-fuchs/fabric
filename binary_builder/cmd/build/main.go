@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/hyperledger/fabric/binary_builder/internal/fsutil"
 	"github.com/hyperledger/fabric/binary_builder/internal/metadata"
 	"github.com/pkg/errors"
 )
@@ -64,6 +65,14 @@ func run(args []string) error {
 	dst := filepath.Join(outputDir, metadata.DefaultBinaryName)
 	if err := copyExecutable(src, dst); err != nil {
 		return err
+	}
+
+	// Carry any state database artifacts (e.g. CouchDB index definitions under
+	// META-INF/statedb) from the package source into the build output, so the
+	// release phase can hand them to the peer. The run phase does not need
+	// them. This is a no-op when the package ships no META-INF directory.
+	if err := fsutil.CopyTree(filepath.Join(sourceDir, "META-INF"), filepath.Join(outputDir, "META-INF")); err != nil {
+		return errors.WithMessage(err, "could not copy META-INF into build output")
 	}
 
 	return nil

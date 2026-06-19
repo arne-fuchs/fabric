@@ -47,6 +47,22 @@ func TestRunCopiesBinary(t *testing.T) {
 	g.Expect(info.Mode().Perm() & 0o100).NotTo(BeZero(), "binary should be executable")
 }
 
+func TestRunCopiesStatedbArtifacts(t *testing.T) {
+	g := NewWithT(t)
+
+	src := writeSourceBinary(g, "chaincode")
+	indexDir := filepath.Join(src, "META-INF", "statedb", "couchdb", "indexes")
+	g.Expect(os.MkdirAll(indexDir, 0o755)).To(Succeed())
+	g.Expect(os.WriteFile(filepath.Join(indexDir, "indexOwner.json"), []byte(`{"index":{"fields":["owner"]}}`), 0o644)).To(Succeed())
+
+	meta := writeMetadata(g, `{"type":"binary","chaincodeData":{}}`)
+	out, err := os.MkdirTemp("", "binarybuilder-out")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(run([]string{"build", src, meta, out})).To(Succeed())
+	g.Expect(filepath.Join(out, "META-INF", "statedb", "couchdb", "indexes", "indexOwner.json")).To(BeAnExistingFile())
+}
+
 func TestRunCustomBinaryName(t *testing.T) {
 	g := NewWithT(t)
 
