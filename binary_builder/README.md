@@ -22,8 +22,18 @@ executable:
 <package>.tgz
 ├── metadata.json
 └── code.tar.gz
-    └── chaincode          # the prebuilt executable (name configurable, see below)
+    ├── chaincode          # the prebuilt executable (name configurable, see below)
+    └── META-INF           # optional: state database artifacts (e.g. CouchDB indexes)
+        └── statedb
+            └── couchdb
+                └── indexes
+                    └── indexOwner.json
 ```
+
+The optional `META-INF/statedb` directory follows the standard Fabric layout.
+When CouchDB is the state database, any index definitions placed there are
+deployed by the peer (see [State database artifacts](#state-database-artifacts)
+below). It is ignored with LevelDB.
 
 ### metadata.json
 
@@ -66,16 +76,27 @@ standard chaincode work:
 
 The builder implements the standard external builder scripts as Go binaries:
 
-| Command  | Peer invocation                          | Behaviour |
-|----------|------------------------------------------|-----------|
-| `detect` | `detect SOURCE_DIR METADATA_DIR`         | Exit 0 only when `type == "binary"`. |
-| `build`  | `build SOURCE_DIR METADATA_DIR OUTPUT_DIR` | Validate type and platform, copy the executable to `OUTPUT_DIR/chaincode` (mode `0755`). |
-| `run`    | `run OUTPUT_DIR LAUNCH_DIR`              | Read `LAUNCH_DIR/chaincode.json`, set up the environment above, and exec the binary. |
-
-There is no `release` phase (none is needed; the peer skips it).
+| Command   | Peer invocation                            | Behaviour |
+|-----------|--------------------------------------------|-----------|
+| `detect`  | `detect SOURCE_DIR METADATA_DIR`           | Exit 0 only when `type == "binary"`. |
+| `build`   | `build SOURCE_DIR METADATA_DIR OUTPUT_DIR` | Validate type and platform, copy the executable to `OUTPUT_DIR/chaincode` (mode `0755`), and stage any `META-INF` (state database artifacts) into the build output. |
+| `release` | `release OUTPUT_DIR RELEASE_DIR`           | Copy `OUTPUT_DIR/META-INF/statedb` into `RELEASE_DIR/statedb` so the peer can deploy state database artifacts. No-op when none are present. |
+| `run`     | `run OUTPUT_DIR LAUNCH_DIR`                | Read `LAUNCH_DIR/chaincode.json`, set up the environment above, and exec the binary. |
 
 > Note: `run` does **not** receive `metadata.json` — only the build output and
 > the peer connection info. Anything `run` needs is produced by `build`.
+
+### State database artifacts
+
+CouchDB index definitions (and other `META-INF/statedb` artifacts) are deployed
+to the peer's state database through the `release` phase, the same way the CCaaS
+builder handles them. The `build` phase copies `META-INF` from the package into
+the build output, and `release` copies `META-INF/statedb` into the release
+directory, where the peer collects it and deploys the indexes to CouchDB.
+
+With LevelDB there are no indexes, so the `release` phase has nothing to do.
+Packages that ship no `META-INF` directory are unaffected — both phases are a
+no-op in that case.
 
 ## Building
 
@@ -93,7 +114,7 @@ To build manually:
 
 ```sh
 cd binary_builder
-for c in detect build run; do go build -o /path/to/builder/bin/ ./cmd/$c/; done
+for c in detect build release run; do go build -o /path/to/builder/bin/ ./cmd/$c/; done
 ```
 
 ## Configuring a peer
@@ -108,7 +129,7 @@ chaincode:
 ```
 
 When a `type: binary` package is installed, the peer's external builder
-framework runs this builder's `detect`, `build`, and `run` in turn.
+framework runs this builder's `detect`, `build`, `release`, and `run` in turn.
 
 ## Testing
 
